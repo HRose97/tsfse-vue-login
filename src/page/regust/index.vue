@@ -4,23 +4,23 @@
         <div class="regust-from-part">
             <el-form label-width="80px" size="small">
                 <el-form-item label="邮箱地址" :required="true">
-                    <el-input v-model="userVo.email"></el-input>
+                    <el-input v-model="userVo.email" @blur="checkMailCode"></el-input>
                     <el-button  Style="margin-left: 10px;" type="primary" 
                                 @click="sendEmailCode" :disabled="mailCodeSendDisable">
                         {{mailCodeSendBtnWords}}
                     </el-button>
                 </el-form-item>
                 <el-form-item label="验证码" :required="true">
-                    <el-input v-model="emailCode"></el-input>
+                    <el-input v-model="emailCode" @blur="checkMailCode"></el-input>
                 </el-form-item>
                 <el-form-item label="用户名" :required="true">
-                    <el-input v-model="userVo.name" :disabled="!isMailCodeCompleted"></el-input>
+                    <el-input v-model="userVo.userName" :disabled="!isMailCodeCompleted"></el-input>
                 </el-form-item>
                 <el-form-item label="手机号">
-                    <el-input v-model="userVo.phone" :disabled="!isMailCodeCompleted"></el-input>
+                    <el-input v-model="userVo.phonenumber" :disabled="!isMailCodeCompleted"></el-input>
                 </el-form-item>
                 <el-form-item label="密码" :required="true">
-                    <el-input v-model="userVo.password" :disabled="!isMailCodeCompleted"></el-input>
+                    <el-input v-model="userVo.password" type="password" :disabled="!isMailCodeCompleted"></el-input>
                 </el-form-item>
 
                 <el-form-item>
@@ -35,7 +35,7 @@
 </template>
 
 <script>
-    import e from 'express';
+    //import e from 'express';
 import * as api from '../../network/api' 
     export default {
         data() {
@@ -43,8 +43,8 @@ import * as api from '../../network/api'
                 userVo: {
                     email: '',
                     code:'',
-                    name: '',
-                    phone:'',
+                    userName: '',
+                    phonenumber:'',
                     password: '',
                 },
                 emailCode:'',
@@ -56,6 +56,7 @@ import * as api from '../../network/api'
         },
         methods:{
             regust(){
+                // TODO 
             },
             sendEmailCode(){
                 //发送之前检查邮箱地址  不可以为空 
@@ -72,7 +73,7 @@ import * as api from '../../network/api'
                     this.$message.error("邮箱地址格式不正确");
                     return
                 }
-                console.log(this.userVo.email);
+                //console.log(this.userVo.email);
                 //发送邮箱验证码
                 api.sendMailCode(this.userVo.email).then(result => {
                     if(result.code === api.SUCCESS_CODE){
@@ -104,6 +105,12 @@ import * as api from '../../network/api'
                         that.mailCodeSendBtnWords = '重新发送(' + time + ')';
                     }
                 }, 1000)
+            },
+            checkMailCode (){
+                //检查邮箱和验证码是否有内容
+                if(this.userVo.email !== '' && this.emailCode !== ''){
+                    this.isMailCodeCompleted = true
+                }
             }
         }
     }
