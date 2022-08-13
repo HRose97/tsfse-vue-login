@@ -30,7 +30,7 @@ const routes = [
   { 
     path: '/forgot',
     name: 'forgot',
-    component: forgot 
+    component: forgot
   },
   { 
     path: '/regust',
@@ -44,6 +44,35 @@ const routes = [
 ];
 const router = new VueRouter({
   routes 
+});
+
+import * as api from './network/api';
+
+router.beforeEach((to,from,next) => {
+  console.log(to)
+    //除了修改密码的phat
+    if(to.path !== '/forgot'){
+    //检查是否有登录
+      api.checkToken().then(result => {
+        if(result.code === api.SUCCESS_CODE){
+          //登录成功的
+          //都要回到首页，显示与用户信息
+          let userVo = result.data;
+          window.localStorage.setItem("user_name",userVo.userName);
+          window.localStorage.setItem("avatar",userVo.avatar);
+          console.log(userVo);
+          if(from.path !== '/index'){
+            next({
+              path:'/index'
+            });
+          }
+        }else{
+          window.localStorage.setItem("user_name","");
+          window.localStorage.setItem("avatar","");        
+        }
+      })
+    }
+    next();
 });
 
 new Vue({

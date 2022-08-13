@@ -1,5 +1,4 @@
 import axios from 'axios';
-
 //携带证书
 axios.defaults.withCredentials = true;
 //设置超时时间

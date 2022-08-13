@@ -11,45 +11,27 @@
                     </el-button>
                 </el-form-item>
                 <el-form-item label="验证码" :required="true">
-                    <el-input v-model="emailCode" @blur="checkMailCode"></el-input>
+                    <el-input v-model="mailCode" @blur="checkMailCode"></el-input>
                 </el-form-item>
                 <el-form-item label="用户名" :required="true">
                     <el-input v-model="userVo.userName" :disabled="!isMailCodeCompleted"></el-input>
                 </el-form-item>
 
-                <el-dropdown>
-                <span class="el-dropdown-link">
-                    用户类型<i class="el-icon-arrow-down el-icon--right"></i>
-                </span>
-                <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item disabled>系统用户</el-dropdown-item>
-                    <el-dropdown-item disabled>超级用户</el-dropdown-item>
-                    <el-dropdown-item disabled>贵宾</el-dropdown-item>
-                    <el-dropdown-item divided>平台管理员</el-dropdown-item>
-                    <el-dropdown-item>赛事管理员</el-dropdown-item>
-                    <el-dropdown-item>球队管理用户</el-dropdown-item>
-                    <el-dropdown-item>游客/访客</el-dropdown-item>
-                    <el-dropdown-item>会员用户</el-dropdown-item>
-                    <el-dropdown-item>队伍管理员</el-dropdown-item>
-                </el-dropdown-menu>
-                </el-dropdown>
-
                 <el-form-item label="手机号">
                     <el-input v-model="userVo.phonenumber" :disabled="!isMailCodeCompleted"></el-input>
                 </el-form-item>
                 <el-form-item label="密码" :required="true">
-                    <el-input v-model="userVo.password" type="password" :disabled="!isMailCodeCompleted"></el-input>
+                    <el-input v-model="password" type="password" :disabled="!isMailCodeCompleted"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button  @click="regust" type="primary" :disabled="!isMailCodeCompleted">注册</el-button>
-                    <span style="margin-left: 20px; color: #7e8c8d">
-                        已注册？ 直接登录
+                    <span >
+                        <a style="margin-left: 20px; color: #7e8c8d;text-decoration: none" href="#/login">已注册？ 直接登录</a>
                     </span>
                 </el-form-item>
             </el-form>
         </div>
         <div class="verification-part">
-
             <Verify
             ref="verify"
             :captcha-type="'blockPuzzle'"
@@ -62,7 +44,8 @@
 
 <script>
     //import e from 'express';
-import * as api from '../../network/api' 
+import * as api from '../../network/api' ;
+import * as md5 from '../../utils/md5' ;
 import Verify from '../../components/verifition/Verify.vue'
 
     export default {
@@ -77,7 +60,8 @@ import Verify from '../../components/verifition/Verify.vue'
                     phonenumber:'',
                     password: '',
                 },
-                emailCode:'',
+                password:'',
+                mailCode:'',
                 // 验证码没填写 后面的内容不允许写入
                 isMailCodeCompleted: false,
                 mailCodeSendDisable: false,
@@ -109,7 +93,7 @@ import Verify from '../../components/verifition/Verify.vue'
                     this.$message.error("请填写邮箱地址");
                     return;
                 }
-                if(this.userVo.emailCode === ''){
+                if(this.userVo.mailCode === ''){
                     this.$message.error("请填写验证码");
                     return;
                 }
@@ -121,31 +105,33 @@ import Verify from '../../components/verifition/Verify.vue'
                     this.$message.error("请填写手机号");
                     return;
                 }
-                if(this.userVo.password === ''){
+                if(this.password === ''){
                     this.$message.error("请设置密码");
                     return;
                 }
-                api.registerAccount(this.userVo).then(result => {
-                   if(result.code === api.SUCCESS_CODE){
-                    //注册成功，跳转到登录页面
-                    this.$message.success(result.msg);
-                    this.$router.push({
-                        path:'/login'
-                    })
-                   }else{
+                //对密码进行转换
+                this.userVo.password = md5.hex_md5(this.password);
+                console.log(this.userVo);
+                api.registerAccount(this.mailCode,this.userVo).then(result => {
+                    if(result.code === api.SUCCESS_CODE){
+                        //注册成功，跳转到登录页面
+                        this.$message.success(result.msg);
+                        this.$router.push({
+                        path:'/login'   
+                        })                
+                    }else{
                     //给出提示
-                    this.$message.error("注册失败");
+                    this.$message.error(result.msg);
                    }
                 })
             },
             sendEmailCode(params){
-                console.log(params);
-                console.log(params.captchaVerification,this.userVo.email);
                 //发送邮箱验证码
-                api.sendMailCode(encodeURIComponent(params.captchaVerification), this.userVo.email).then(result => {
+                api.sendRegustMailCode(encodeURIComponent(params.captchaVerification), this.userVo.email).then(result => {
+                    console.log(result);
                     if(result.code === api.SUCCESS_CODE){
                         //如果成功以后给出提示
-                        this.$message.success(result.data.data)
+                        this.$message.success(result.msg)
                         //禁止发送按钮
                         this.mailCodeSendDisable = true;
                         //开始倒计时60s
@@ -175,7 +161,7 @@ import Verify from '../../components/verifition/Verify.vue'
             },
             checkMailCode (){
                 //检查邮箱和验证码是否有内容
-                if(this.userVo.email !== '' && this.emailCode !== ''){
+                if(this.userVo.email !== '' && this.mailCode !== ''){
                     this.isMailCodeCompleted = true
                 }
             }
