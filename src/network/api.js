@@ -46,6 +46,6 @@ export const sendForgotMailCode = (mailCode,userVo) =>{
 
 //获取所有用户列表
 export const getAllUserByPage = (current,size) =>{
-    return http.requestGet(base_url + "/email/register/emailCode?current=" + current
+    return http.requestGet(base_url + "/admin/user/getAllUserByPage?current=" + current
     + "&size=" + size);
 };
